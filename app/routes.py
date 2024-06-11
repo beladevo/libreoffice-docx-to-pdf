@@ -1,7 +1,11 @@
-from flask import Blueprint, request, jsonify, send_file
-from .utils import convert_docx_to_pdf
-import tempfile
 import os
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
+
+from flask import Blueprint, request, jsonify, send_file
+from werkzeug.utils import secure_filename
+
+from .utils import convert_docx_to_pdf
 
 convert_bp = Blueprint('convert', __name__)
 
@@ -15,23 +19,20 @@ def convert():
     if file.filename.split('.')[-1].lower() != 'docx':
         return jsonify({"error": "Invalid file format"}), 400
 
-    temp_input_path = None
-    temp_output_path = None
-
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_input:
-            file.save(temp_input.name)
-            temp_input_path = temp_input.name
+        filename = secure_filename(file.filename)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_input_path = os.path.join(temp_dir, filename)
+            file.save(temp_input_path)
 
-        temp_output_path = convert_docx_to_pdf(temp_input_path)
+            with ThreadPoolExecutor() as executor:
+                temp_output_path = executor.submit(convert_docx_to_pdf, temp_input_path).result()
 
-        return send_file(temp_output_path, as_attachment=True, download_name='converted.pdf')
+            return send_file(temp_output_path, as_attachment=True, download_name='converted.pdf')
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     finally:
-        if temp_input_path and os.path.exists(temp_input_path):
+        if os.path.exists(temp_input_path):
             os.remove(temp_input_path)
-        if temp_output_path and os.path.exists(temp_output_path):
-            os.remove(temp_output_path)
