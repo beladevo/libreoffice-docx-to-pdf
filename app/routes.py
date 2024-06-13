@@ -42,7 +42,8 @@ def convert():
             return jsonify({"error": str(e)}), 500
 
     finally:
-        if temp_input_path and os.path.exists(temp_input_path):
-            os.remove(temp_input_path)
+        print("finally")
+    #     if temp_input_path and os.path.exists(temp_input_path):
+    #         os.remove(temp_input_path)
     #     if temp_output_path and os.path.exists(temp_output_path):
     #         os.remove(temp_output_path)
