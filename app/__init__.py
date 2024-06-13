@@ -6,4 +6,8 @@ def create_app():
     from .routes import convert_bp
     app.register_blueprint(convert_bp)
 
+    @app.route('/health')
+    def health_check():
+        return 'OK', 200
+
     return app
