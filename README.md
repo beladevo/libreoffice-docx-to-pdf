@@ -3,7 +3,7 @@ This is a Flask-based microservice that converts DOCX files to PDF format using 
 
 ## Installation
 ```
-git clone https://github.com/your-username/docx-pdf-converter.git
+git clone https://github.com/beladevo/libreoffice-docx-to-pdf.git
 pip install -r requirements.txt
 python run.py
 ```
