@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify, send_file
 from .utils import convert_docx_to_pdf
 import tempfile
 import os
+
+from werkzeug.utils import secure_filename
+from concurrent.futures import ThreadPoolExecutor
 import logging
 
 convert_bp = Blueprint("convert", __name__)
@@ -16,6 +19,18 @@ def convert():
         if not file:
             logger.error("No file provided in the request.")
             return jsonify({"error": "No file provided"}), 400
+
+
+    try:
+        filename = secure_filename(file.filename)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as temp_input:
+            file.save(temp_input.name)
+            temp_input_path = temp_input.name
+
+        with ThreadPoolExecutor() as executor:
+            temp_output_path = executor.submit(convert_docx_to_pdf, temp_input_path).result()
+
+        return send_file(temp_output_path, as_attachment=True, download_name='converted.pdf')
 
         if file.filename.split(".")[-1].lower() != "docx":
             logger.error("Invalid file format provided.")
@@ -35,7 +50,7 @@ def convert():
 
             return send_file(
                 temp_output_path, as_attachment=True, download_name="converted.pdf"
-            )
+              }
 
         except Exception as e:
             logger.error(f"Conversion error: {e}")
@@ -47,3 +62,4 @@ def convert():
     #         os.remove(temp_input_path)
     #     if temp_output_path and os.path.exists(temp_output_path):
     #         os.remove(temp_output_path)
+
