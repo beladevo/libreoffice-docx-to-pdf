@@ -1,6 +1,7 @@
 FROM ubuntu:22.04
 
-ENV DEBIAN_FRONTEND=noninteractive
+# ENV DEBIAN_FRONTEND=noninteractive
+ENV TEMP_DIR=/home/temp
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -8,6 +9,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
+
+RUN mkdir -p /home/temp
 
 COPY . .
 
