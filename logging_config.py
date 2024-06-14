@@ -22,11 +22,24 @@ def setup_logging(env='development'):
                     'class': 'logging.FileHandler',
                     'filename': log_file,
                 },
+                'time_file': {
+                    'level': 'INFO',
+                    'formatter': 'standard',
+                    'class': 'logging.FileHandler',
+                    'filename': time_log_file,
+                },
             },
-            'root': {
-                'handlers': ['file'],
-                'level': 'INFO',
-            },
+            'loggers': {
+                '': {  # root logger
+                    'handlers': ['file'],
+                    'level': 'INFO',
+                },
+                'conversion_time': {
+                    'handlers': ['time_file'],
+                    'level': 'INFO',
+                    'propagate': False
+                },
+            }
         })
     else:
         logging.basicConfig(level=logging.DEBUG,
@@ -34,6 +47,12 @@ def setup_logging(env='development'):
 
     time_logger = logging.getLogger('conversion_time')
     time_logger.setLevel(logging.INFO)
+
+    if env != 'production':
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s'))
+        logging.getLogger('').addHandler(console_handler)
+        time_logger.addHandler(console_handler)
 
     time_handler = logging.FileHandler(time_log_file)
     time_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))

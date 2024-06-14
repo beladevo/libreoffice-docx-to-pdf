@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, send_file
 from .utils import convert_docx_to_pdf
 import tempfile
 import os
+import time
 
 from werkzeug.utils import secure_filename
 from concurrent.futures import ThreadPoolExecutor
@@ -15,10 +16,10 @@ logger = logging.getLogger(__name__)
 def convert():
     temp_input_path = None
     temp_output_path = None
+    start_time = time.time()
 
     try:
         file = request.files.get("file")
-
         if not file:
             logger.error("No file provided in the request.")
             return jsonify({"error": "No file provided"}), 400
@@ -32,10 +33,14 @@ def convert():
             file.save(temp_input.name)
             temp_input_path = temp_input.name
 
+        logger.info(f"Received file: {filename}, saved to: {temp_input_path}")
+
         with ThreadPoolExecutor() as executor:
             temp_output_path = executor.submit(
                 convert_docx_to_pdf, temp_input_path
             ).result()
+
+        logger.info(f"Conversion successful, sending file: {temp_output_path}")
 
         return send_file(
             temp_output_path, as_attachment=True, download_name="converted.pdf"
@@ -45,8 +50,10 @@ def convert():
         logger.error(f"Conversion error: {e}")
         return jsonify({"error": str(e)}), 500
 
-    # finally:
-    #     if temp_input_path and os.path.exists(temp_input_path):
-    #         os.remove(temp_input_path)
-    #     if temp_output_path and os.path.exists(temp_output_path):
-    #         os.remove(temp_output_path)
+    finally:
+        duration = time.time() - start_time
+        logger.info(f"Request processed in {duration:.2f} seconds")
+        # if temp_input_path and os.path.exists(temp_input_path):
+        #     os.remove(temp_input_path)
+        # if temp_output_path and os.path.exists(temp_output_path):
+        #     os.remove(temp_output_path)

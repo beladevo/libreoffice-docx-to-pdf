@@ -6,7 +6,6 @@ import logging
 logger = logging.getLogger(__name__)
 time_logger = logging.getLogger("conversion_time")
 
-
 def convert_docx_to_pdf(input_path):
     start_time = time.time()
     output_path = input_path.replace(".docx", ".pdf")
@@ -32,7 +31,7 @@ def convert_docx_to_pdf(input_path):
             check=True,
         )
         duration = time.time() - start_time
-        print(
+        logger.info(
             f"Conversion successful for {input_path}. Time taken: {duration:.2f} seconds"
         )
         time_logger.info(
@@ -40,6 +39,5 @@ def convert_docx_to_pdf(input_path):
         )
         return output_path
     except subprocess.CalledProcessError as e:
-
         logger.error(f"Conversion failed for {input_path}: {e}")
         raise RuntimeError(f"Conversion failed: {e}")
