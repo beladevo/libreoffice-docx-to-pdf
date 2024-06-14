@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 
-# ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 ENV TEMP_DIR=/home/temp
 
 RUN apt-get update && \
@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get -y install python3.10 python3-pip libreoffice libreoffice-java-common && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/app
+WORKDIR /home/src/app
 
 RUN mkdir -p /home/temp
 
