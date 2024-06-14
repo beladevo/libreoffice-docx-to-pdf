@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify, send_file
 from .utils import convert_docx_to_pdf
 import tempfile
 import os
-
 from werkzeug.utils import secure_filename
 from concurrent.futures import ThreadPoolExecutor
 import logging
@@ -10,7 +9,7 @@ import logging
 convert_bp = Blueprint("convert", __name__)
 logger = logging.getLogger(__name__)
 
-TEMP_DIR = os.getenv('TEMP_DIR', '/tmp')
+TEMP_DIR = os.getenv('TEMP_DIR', '/home/temp')
 
 @convert_bp.route("/convert", methods=["POST"])
 def convert():
@@ -29,7 +28,7 @@ def convert():
             return jsonify({"error": "Invalid file format"}), 400
 
         filename = secure_filename(file.filename)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx",dir=TEMP_DIR) as temp_input:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx", dir=TEMP_DIR) as temp_input:
             file.save(temp_input.name)
             temp_input_path = temp_input.name
 

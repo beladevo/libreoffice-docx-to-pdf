@@ -17,6 +17,5 @@ def convert_docx_to_pdf(input_path):
         time_logger.info(f"Conversion successful for {input_path}. Time taken: {duration:.2f} seconds")
         return output_path
     except subprocess.CalledProcessError as e:
-
         logger.error(f"Conversion failed for {input_path}: {e}")
         raise RuntimeError(f"Conversion failed: {e}")
