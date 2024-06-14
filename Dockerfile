@@ -2,10 +2,12 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TEMP_DIR=/home/temp
+ENV FLASK_ENV=development
 
 RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install python3.10 python3-pip libreoffice libreoffice-java-common curl && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
