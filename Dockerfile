@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get -y install python3.10 python3-pip libreoffice libreoffice-java-common && \
+    apt-get -y install python3.10 python3-pip libreoffice && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
