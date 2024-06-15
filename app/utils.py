@@ -17,7 +17,6 @@ def convert_docx_to_pdf(input_path):
                 "--invisible",
                 "--headless",
                 "--nologo",
-                "--headless",
                 "--nocrashreport",
                 "--nodefault",
                 "--norestore",

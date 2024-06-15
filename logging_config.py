@@ -30,7 +30,7 @@ def setup_logging(env='development'):
                 },
             },
             'loggers': {
-                '': {  # root logger
+                '': {
                     'handlers': ['file'],
                     'level': 'INFO',
                 },
