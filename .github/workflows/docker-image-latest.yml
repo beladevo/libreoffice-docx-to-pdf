@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Source Code
       uses: actions/checkout@v3
 
     - name: Set up Docker Buildx
@@ -25,7 +25,15 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Build and push Docker image
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build and Push Docker Image
       uses: docker/build-push-action@v4
       with:
         context: .
@@ -33,6 +41,8 @@ jobs:
         tags: |
           beladevos/docx-pdf-converter-libreoffice:latest
           beladevos/docx-pdf-converter-libreoffice:1.0.${{ github.run_number }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache
 
     - name: Log out of Docker Hub
       run: docker logout
