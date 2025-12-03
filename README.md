@@ -18,5 +18,5 @@ docker build -t beladevos/docx-pdf-converter-libreoffice
 docker run -p 5000:5000 beladevos/docx-pdf-converter-libreoffice
 ```
 
-## Lisence
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.
