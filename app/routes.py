@@ -6,6 +6,7 @@ import time
 from werkzeug.utils import secure_filename
 from concurrent.futures import ThreadPoolExecutor
 import logging
+from urllib.parse import urlparse, unquote
 
 convert_bp = Blueprint("convert", __name__)
 logger = logging.getLogger(__name__)
@@ -50,7 +51,12 @@ def convert():
                 logger.error("No URL provided in the request.")
                 return jsonify({"error": "No URL provided"}), 400
 
-            filename = secure_filename(file_url.split('/')[-1])
+            # Extract a safe filename from the URL path only (ignore query string)
+            parsed = urlparse(file_url)
+            raw_name = os.path.basename(parsed.path)  # e.g. "file.docx"
+            raw_name = unquote(raw_name)  # decode %20 etc.
+
+            filename = secure_filename(raw_name) or "document.docx"
             temp_input_path = download_file(file_url, filename)
 
         else:
