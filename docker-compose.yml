@@ -1,9 +1,14 @@
-version: '3.8'
 
 services:
   flask_app:
     build: .
+    env_file:
+      - .env
     ports:
-      - "5000:5000"
+      # Map host and container ports from PORT in .env (default 8000)
+      - "${PORT:-8000}:${PORT:-8000}"
     environment:
-      - FLASK_ENV=production
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - PORT=${PORT:-8000}
+      - LOG_FILE=${LOG_FILE:-app.log}
+      - TIME_LOG_FILE=${TIME_LOG_FILE:-conversion_time.log}
