@@ -11,11 +11,12 @@ python run.py
 ## Usage
 * Upload a DOCX file to the /convert endpoint to convert it to PDF.
 * The converted PDF file will be available for download.
+* To change the port the server listens on, set the `PORT` variable in your `.env` file (default is 8000).
 
 ## Docker
 ```
 docker build -t beladevos/docx-pdf-converter-libreoffice
-docker run -p 5000:5000 beladevos/docx-pdf-converter-libreoffice
+docker run -p 8000:8000 beladevos/docx-pdf-converter-libreoffice
 ```
 
 ## License
