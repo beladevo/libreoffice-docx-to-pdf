@@ -1,3 +1,17 @@
+import os
+import subprocess
+import time
+import logging
+import requests
+import tempfile
+import shutil
+
+logger = logging.getLogger(__name__)
+time_logger = logging.getLogger("conversion_time")
+
+SUPPORTED_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
+
+
 def convert_office_to_pdf(input_path: str) -> str:
     start_time = time.time()
 
@@ -24,6 +38,7 @@ def convert_office_to_pdf(input_path: str) -> str:
                 "--nodefault",
                 "--norestore",
                 "--nolockcheck",
+                "-env:UNO_JAVA_JFW_ENV_JREHOME=false",
                 f"-env:UserInstallation={lo_profile_uri}",
                 "--convert-to",
                 "pdf",
@@ -49,9 +64,18 @@ def convert_office_to_pdf(input_path: str) -> str:
         raise RuntimeError(f"Conversion failed: {e}")
 
     finally:
-        # Cleanup profile
-        try:
-            import shutil
-            shutil.rmtree(lo_profile_dir, ignore_errors=True)
-        except Exception:
-            logger.warning(f"Failed to cleanup LibreOffice profile: {lo_profile_dir}")
+        shutil.rmtree(lo_profile_dir, ignore_errors=True)
+
+
+def download_file(url, filename="document"):
+    filename = f"{time.time()}-{filename}"
+    local_filename = os.path.join(tempfile.gettempdir(), filename)
+
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+    return local_filename
