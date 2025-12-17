@@ -1,3 +1,6 @@
 __pycache__/
 test*
 *.log
+venv
+venv*
+venv/
