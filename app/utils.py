@@ -1,15 +1,3 @@
-import os
-import subprocess
-import time
-import logging
-import requests
-import tempfile
-
-logger = logging.getLogger(__name__)
-time_logger = logging.getLogger("conversion_time")
-
-SUPPORTED_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
-
 def convert_office_to_pdf(input_path: str) -> str:
     start_time = time.time()
 
@@ -20,6 +8,10 @@ def convert_office_to_pdf(input_path: str) -> str:
         raise ValueError(f"Unsupported file type: .{ext}")
 
     output_path = base + ".pdf"
+
+    # Tạo LibreOffice profile riêng cho request
+    lo_profile_dir = tempfile.mkdtemp(prefix="lo-profile-")
+    lo_profile_uri = f"file://{lo_profile_dir}"
 
     try:
         subprocess.run(
@@ -32,6 +24,7 @@ def convert_office_to_pdf(input_path: str) -> str:
                 "--nodefault",
                 "--norestore",
                 "--nolockcheck",
+                f"-env:UserInstallation={lo_profile_uri}",
                 "--convert-to",
                 "pdf",
                 input_path,
@@ -55,16 +48,10 @@ def convert_office_to_pdf(input_path: str) -> str:
         logger.error(f"Conversion failed for {input_path}: {e}")
         raise RuntimeError(f"Conversion failed: {e}")
 
-
-def download_file(url, filename="document"):
-    filename = f"{time.time()}-{filename}"
-    local_filename = os.path.join(tempfile.gettempdir(), filename)
-
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(local_filename, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-
-    return local_filename
+    finally:
+        # Cleanup profile
+        try:
+            import shutil
+            shutil.rmtree(lo_profile_dir, ignore_errors=True)
+        except Exception:
+            logger.warning(f"Failed to cleanup LibreOffice profile: {lo_profile_dir}")
