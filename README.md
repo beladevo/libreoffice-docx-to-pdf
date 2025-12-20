@@ -1,5 +1,5 @@
 # DOCX to PDF Converter
-This is a Flask-based microservice that converts DOCX files to PDF format using LibreOffice.
+Flask microservice that converts Office files (Word, Excel, PowerPoint) to PDF using LibreOffice.
 
 ## Installation
 ```
@@ -9,9 +9,35 @@ python run.py
 ```
 
 ## Usage
-* Upload a DOCX file to the /convert endpoint to convert it to PDF.
-* The converted PDF file will be available for download.
-* To change the port the server listens on, set the `PORT` variable in your `.env` file (default is 8000).
+
+Supports: `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`
+
+**Upload file:**
+```bash
+curl -X POST http://localhost:8000/convert \
+  -F "method=file" \
+  -F "file=@document.docx" \
+  -o output.pdf
+```
+
+**Convert from URL:**
+```bash
+curl -X POST http://localhost:8000/convert \
+  -F "method=url" \
+  -F "fileUrl=https://example.com/file.xlsx" \
+  -o output.pdf
+```
+
+**Raw bytes:**
+```bash
+curl -X POST http://localhost:8000/convert \
+  -F "method=ms" \
+  -F "ext=pptx" \
+  --data-binary @presentation.pptx \
+  -o output.pdf
+```
+
+Port defaults to 8000. Set `PORT` in `.env` to change.
 
 ## Docker
 ```
