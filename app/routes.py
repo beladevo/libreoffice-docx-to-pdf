@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, after_this_request
 from .utils import convert_office_to_pdf, download_file
+from .constants import SUPPORTED_EXTENSIONS
 import tempfile
 import os
 import time
@@ -9,8 +10,6 @@ from urllib.parse import urlparse, unquote
 
 convert_bp = Blueprint("convert", __name__)
 logger = logging.getLogger(__name__)
-
-ALLOWED_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
 
 def get_extension(filename: str) -> str:
     if not filename or "." not in filename:
@@ -33,7 +32,7 @@ def convert():
                 return jsonify({"error": "No file provided"}), 400
 
             ext = get_extension(file.filename)
-            if ext not in ALLOWED_EXTENSIONS:
+            if ext not in SUPPORTED_EXTENSIONS:
                 return jsonify({"error": "Invalid file format"}), 400
 
             filename = secure_filename(file.filename)
@@ -51,7 +50,7 @@ def convert():
             if not file_bytes:
                 return jsonify({"error": "No byte stream provided"}), 400
 
-            if ext not in ALLOWED_EXTENSIONS:
+            if ext not in SUPPORTED_EXTENSIONS:
                 return jsonify({"error": "Invalid file format"}), 400
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as temp_input:
@@ -68,7 +67,7 @@ def convert():
             original_filename = filename
 
             ext = get_extension(filename)
-            if ext not in ALLOWED_EXTENSIONS:
+            if ext not in SUPPORTED_EXTENSIONS:
                 return jsonify({"error": "Invalid file format"}), 400
 
             temp_input_path = download_file(file_url, filename)

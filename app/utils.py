@@ -8,11 +8,10 @@ import shutil
 import uuid
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from .constants import SUPPORTED_EXTENSIONS
 
 logger = logging.getLogger(__name__)
-time_logger = logger  
-
-SUPPORTED_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
+time_logger = logger
 
 
 def _ensure_soffice():
