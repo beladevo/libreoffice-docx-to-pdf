@@ -4,3 +4,6 @@ test*
 venv
 venv*
 venv/
+.vscode/
+.vscode*
+
