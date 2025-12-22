@@ -9,6 +9,7 @@ import uuid
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from .constants import SUPPORTED_EXTENSIONS
+import zipfile
 
 logger = logging.getLogger(__name__)
 time_logger = logger
@@ -19,6 +20,36 @@ def _ensure_soffice():
     if not soffice_path:
         raise RuntimeError("LibreOffice 'soffice' executable not found in PATH")
     return soffice_path
+
+
+# Detect modern Office type by inspecting ZIP content
+def detect_modern_office_type(file_path: str) -> str | None:
+    try:
+        with zipfile.ZipFile(file_path, mode="r") as z:
+            names = set(z.namelist())
+
+            if "word/document.xml" in names:
+                return "docx"
+            if "xl/workbook.xml" in names:
+                return "xlsx"
+            if "ppt/presentation.xml" in names:
+                return "pptx"
+    except zipfile.BadZipFile:
+        return None
+
+    return None
+
+
+# Detect legacy Office file via OLE header
+def is_legacy_office_file(file_path: str) -> bool:
+    try:
+        with open(file_path, "rb") as f:
+            header = f.read(8)
+        if len(header) < 8:
+            return False
+        return header == b"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"
+    except Exception:
+        return False
 
 
 def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
@@ -33,11 +64,9 @@ def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
 
     soffice_path = _ensure_soffice()
 
-    # output to a temp directory to avoid permission issues in input dir
     outdir = tempfile.mkdtemp(prefix="lo-out-")
     output_path = os.path.join(outdir, f"{name_no_ext}.pdf")
 
-    # LibreOffice profile isolated per request
     lo_profile_dir = tempfile.mkdtemp(prefix="lo-profile-")
     lo_profile_uri = f"file://{lo_profile_dir}"
 
@@ -81,7 +110,6 @@ def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
         )
 
         if not os.path.exists(output_path):
-            
             candidates = [f for f in os.listdir(outdir) if f.lower().endswith(".pdf")]
             if candidates:
                 output_path = os.path.join(outdir, candidates[0])
@@ -95,20 +123,21 @@ def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
         raise RuntimeError("Conversion timed out") from e
 
     finally:
-        
         shutil.rmtree(lo_profile_dir, ignore_errors=True)
 
 
 def download_file(url, filename="document", timeout=(5, 30), max_retries=3):
-    
     parsed = requests.utils.urlparse(url)
     raw_name = os.path.basename(parsed.path) or filename
     _, ext = os.path.splitext(raw_name)
     suffix = ext if ext else ""
 
-    # retry session
     session = requests.Session()
-    retries = Retry(total=max_retries, backoff_factor=0.5, status_forcelist=(500, 502, 503, 504))
+    retries = Retry(
+        total=max_retries,
+        backoff_factor=0.5,
+        status_forcelist=(500, 502, 503, 504),
+    )
     session.mount("http://", HTTPAdapter(max_retries=retries))
     session.mount("https://", HTTPAdapter(max_retries=retries))
 
@@ -121,6 +150,5 @@ def download_file(url, filename="document", timeout=(5, 30), max_retries=3):
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-                    f.flush()
 
     return local_path
