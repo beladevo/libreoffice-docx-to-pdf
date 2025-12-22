@@ -10,7 +10,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from .constants import SUPPORTED_EXTENSIONS
 import zipfile
-
+from typing import Optional
 logger = logging.getLogger(__name__)
 time_logger = logger
 
@@ -23,7 +23,7 @@ def _ensure_soffice():
 
 
 # Detect modern Office type by inspecting ZIP content
-def detect_modern_office_type(file_path: str) -> str | None:
+def detect_modern_office_type(file_path: str) -> Optional[str]:
     try:
         with zipfile.ZipFile(file_path, mode="r") as z:
             names = set(z.namelist())
