@@ -1,4 +1,5 @@
 # DOCX to PDF Converter
+![DOCX to PDF Converter logo](docs/logo.png)
 Flask microservice that converts Office files (Word, Excel, PowerPoint) to PDF using LibreOffice.
 
 ## Installation
